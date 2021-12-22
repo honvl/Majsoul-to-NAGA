@@ -1,0 +1,25 @@
+# Majsoul-to-NAGA
+=Use Mahjong Soul Logs with NAGA AI analysis
+:experimental:
+
+== Summary
+Capture Mahjong Soul logs from a replay using browser Greasemonkey script and
+convert to format accepted by NAGA's custom game analysis
+
+Copies NAGA-compatible output to clipboard when you press "s" while in a Mahjong Soul 4-player replay, which you can paste in https://naga.dmv.nico/naga_report/order_form/ for AI analysis of your game
+
+== Instructions (Browser)
+=== Install tampermonkey extension on your browser
+https://www.tampermonkey.net/[Download it here]
+
+=== Install `downloadlogsnaga` script
+Add https://github.com/honvl/Majsoul-to-NAGA/blob/master/downloadlogsnaga.js[this script] to tampermonkey.
+
+=== Download the log
+Login to Mahjong Soul, open the log you want to review, then press kbd:[S] after the log is loaded. It will copy a bunch of text to your clipboard.
+
+=== Overview of how to use NAGA
+Find an overview of how to pay for and use NAGA's service https://pathofhouou.blogspot.com/2021/08/training-tool-naga-replay-review.html[here]
+
+=== Paste into NAGA custom analysis order form
+When the text is in your clipboard, paste it into the middle tab (custom game analysis) of NAGA's order form https://naga.dmv.nico/naga_report/order_form/[here]. NAGA points are charged by the round for custom games so it is more expensive.
