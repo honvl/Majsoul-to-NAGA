@@ -16,10 +16,10 @@ https://www.tampermonkey.net/[Download it here]
 Add https://github.com/honvl/Majsoul-to-NAGA/blob/master/downloadlogsnaga.js[this script] to tampermonkey.
 
 === Download the log
-Login to Mahjong Soul, open the log you want to review, then press kbd:[S] after the log is loaded.
+Login to Mahjong Soul, open the log you want to review, then press kbd:[S] after the log is loaded. It will copy a bunch of text to your clipboard.
 
 === Overview of how to use NAGA
 Find an overview of how to pay for and use NAGA's service https://pathofhouou.blogspot.com/2021/08/training-tool-naga-replay-review.html[here]
 
 === Paste into NAGA custom analysis order form
-Text is copied into the clipboard. Paste it into the middle tab (custom game analysis) of NAGA's order form https://naga.dmv.nico/naga_report/order_form/[here]. NAGA points are charged by the round for custom games so it is more expensive.
+When the text is in your clipboard, paste it into the middle tab (custom game analysis) of NAGA's order form https://naga.dmv.nico/naga_report/order_form/[here]. NAGA points are charged by the round for custom games so it is more expensive.
