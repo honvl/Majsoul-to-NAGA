@@ -1,5 +1,6 @@
 # Majsoul-to-NAGA
 =Use Mahjong Soul Logs with NAGA AI analysis
+:experimental:
 
 == Summary
 Capture Mahjong Soul logs from a replay using browser Greasemonkey script and
