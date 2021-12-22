@@ -9,7 +9,7 @@ Copies NAGA-compatible output to clipboard when you press "s" while in a Mahjong
 
 == Instructions (Browser)
 === Install tampermonkey extension on your browser
-https://www.tampermonkey.net/[Here]
+https://www.tampermonkey.net/[Download it here]
 
 === Install `downloadlogsnaga` script
 Add https://github.com/honvl/Majsoul-to-NAGA/blob/master/downloadlogsnaga.js[this script] to tampermonkey.
@@ -18,4 +18,4 @@ Add https://github.com/honvl/Majsoul-to-NAGA/blob/master/downloadlogsnaga.js[thi
 Login to Mahjong Soul, open the log you want to review, then press kbd:[S] after the log is loaded.
 
 === Paste into NAGA custom analysis order form
-Text is in the clipboard. Paste into https://naga.dmv.nico/naga_report/order_form/[Here]
+Text is copied into the clipboard. Paste into https://naga.dmv.nico/naga_report/order_form/[Here]
