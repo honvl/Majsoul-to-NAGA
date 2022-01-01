@@ -739,6 +739,8 @@
                       else if (winnerIdx == 3){
                           myObj.log[x][myObj.log[x].length-1][2][z]  = myObj.log[x][myObj.log[x].length-1][2][z].replace('役牌:自風牌','自風 北')               
                       }
+                      //replace double riichi
+                      myObj.log[x][myObj.log[x].length-1][2][z]  = myObj.log[x][myObj.log[x].length-1][2][z].replace('ダブル立直','両立直') 
                     }    
                   }
                   //console.log(myObj.log[x][myObj.log[x].length-1][2])
