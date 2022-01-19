@@ -6,7 +6,7 @@
 // @description  Copies NAGA-compatible output to clipboard when you press "s" while in a Mahjong Soul 4-player replay, which you can paste in https://naga.dmv.nico/naga_report/order_form/ for AI analysis of your game
 // @include      https://mahjongsoul.game.yo-star.com/
 // @include      https://game.mahjongsoul.com/
-// @include      https://majsoul.union-game.com/0/
+// @include      https://game.maj-soul.com/1/
 // ==/UserScript==
 
 (function()
