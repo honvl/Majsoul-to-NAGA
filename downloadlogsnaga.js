@@ -741,7 +741,8 @@
                       }
                       //replace double riichi
                       myObj.log[x][myObj.log[x].length-1][2][z]  = myObj.log[x][myObj.log[x].length-1][2][z].replace('ダブル立直','両立直') 
-                    }    
+                      //replace 13wait yakuman
+                      myObj.log[x][myObj.log[x].length-1][2][z]  = myObj.log[x][myObj.log[x].length-1][2][z].replace('国士無双十三面待ち','国士無双１３面')                     }    
                   }
                   //console.log(myObj.log[x][myObj.log[x].length-1][2])
 
