@@ -714,36 +714,39 @@
                   }
                 //console.log(myObj.log[x][myObj.log[x].length-1][2])
 
-                  for (z in myObj.log[x][myObj.log[x].length-1][2]){
-                    if (typeof(myObj.log[x][myObj.log[x].length-1][2][z]) === 'string'){
+                for (a in myObj.log[x][myObj.log[x].length-1]){
+                  for (z in myObj.log[x][myObj.log[x].length-1][a]){
+                    if (typeof(myObj.log[x][myObj.log[x].length-1][a][z]) === 'string'){
                       //replace round wind yakuhai names
                       if (myObj.log[x][0][0] <=3){
-                        myObj.log[x][myObj.log[x].length-1][2][z] = myObj.log[x][myObj.log[x].length-1][2][z].replace('役牌:場風牌','場風 東');
+                        myObj.log[x][myObj.log[x].length-1][a][z] = myObj.log[x][myObj.log[x].length-1][a][z].replace('役牌:場風牌','場風 東');
                       }
                       else if (myObj.log[x][0][0] <= 7){
-                       myObj.log[x][myObj.log[x].length-1][2][z] = myObj.log[x][myObj.log[x].length-1][2][z].replace('役牌:場風牌','場風 南');      
+                       myObj.log[x][myObj.log[x].length-1][a][z] = myObj.log[x][myObj.log[x].length-1][a][z].replace('役牌:場風牌','場風 南');      
                       }
                       else {
-                        myObj.log[x][myObj.log[x].length-1][2][z] = myObj.log[x][myObj.log[x].length-1][2][z].replace('役牌:場風牌','場風 西');      
+                        myObj.log[x][myObj.log[x].length-1][a][z] = myObj.log[x][myObj.log[x].length-1][a][z].replace('役牌:場風牌','場風 西');      
                       }
                       //replace seat wind yakuhai names
                       if (winnerIdx == 0){
-                          myObj.log[x][myObj.log[x].length-1][2][z]  = myObj.log[x][myObj.log[x].length-1][2][z].replace('役牌:自風牌','自風 東')
+                          myObj.log[x][myObj.log[x].length-1][a][z]  = myObj.log[x][myObj.log[x].length-1][a][z].replace('役牌:自風牌','自風 東')
                       }
                       else if (winnerIdx == 1){
-                          myObj.log[x][myObj.log[x].length-1][2][z]  = myObj.log[x][myObj.log[x].length-1][2][z].replace('役牌:自風牌','自風 南')
+                          myObj.log[x][myObj.log[x].length-1][a][z]  = myObj.log[x][myObj.log[x].length-1][a][z].replace('役牌:自風牌','自風 南')
                       }
                       else if (winnerIdx == 2){
-                          myObj.log[x][myObj.log[x].length-1][2][z]  = myObj.log[x][myObj.log[x].length-1][2][z].replace('役牌:自風牌','自風 西')
+                          myObj.log[x][myObj.log[x].length-1][a][z]  = myObj.log[x][myObj.log[x].length-1][a][z].replace('役牌:自風牌','自風 西')
                       }
                       else if (winnerIdx == 3){
-                          myObj.log[x][myObj.log[x].length-1][2][z]  = myObj.log[x][myObj.log[x].length-1][2][z].replace('役牌:自風牌','自風 北')               
+                          myObj.log[x][myObj.log[x].length-1][a][z]  = myObj.log[x][myObj.log[x].length-1][a][z].replace('役牌:自風牌','自風 北')               
                       }
                       //replace double riichi
-                      myObj.log[x][myObj.log[x].length-1][2][z]  = myObj.log[x][myObj.log[x].length-1][2][z].replace('ダブル立直','両立直') 
+                      myObj.log[x][myObj.log[x].length-1][a][z]  = myObj.log[x][myObj.log[x].length-1][a][z].replace('ダブル立直','両立直') 
                       //replace 13wait yakuman
-                      myObj.log[x][myObj.log[x].length-1][2][z]  = myObj.log[x][myObj.log[x].length-1][2][z].replace('国士無双十三面待ち','国士無双１３面')                     }    
+                      myObj.log[x][myObj.log[x].length-1][a][z]  = myObj.log[x][myObj.log[x].length-1][a][z].replace('国士無双十三面待ち','国士無双１３面') 
+                    }    
                   }
+                }
                   //console.log(myObj.log[x][myObj.log[x].length-1][2])
 
                   formattedObj = {};
