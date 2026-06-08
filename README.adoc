@@ -4,22 +4,50 @@
 
 == Summary
 Capture Mahjong Soul logs from a replay using browser Greasemonkey script and
-convert to format accepted by NAGA's custom game analysis
+convert to format accepted by NAGA's custom game analysis.
 
-Copies NAGA-compatible output to clipboard when you press "s" while in a Mahjong Soul 4-player replay, which you can paste in https://naga.dmv.nico/naga_report/order_form/ for AI analysis of your game
+Mahjong Soul no longer exposes the `GameMgr`/`app` globals this script used to
+call. The userscript now hooks `window.WebSocket` at page load, captures the raw
+`fetchGameRecord` replay response, converts it in-browser, and submits the
+per-round custom-game payload to NAGA when you press kbd:[S].
 
 == Instructions (Browser)
 === Install tampermonkey extension on your browser
 https://www.tampermonkey.net/[Download it here]
 
 === Install `downloadlogsnaga` script
-Add https://github.com/honvl/Majsoul-to-NAGA/blob/master/downloadlogsnaga.js[this script] to tampermonkey.
+Add https://github.com/honvl/Majsoul-to-NAGA/raw/master/downloadlogsnaga.js[this script] to Tampermonkey.
 
-=== Download the log
-Login to Mahjong Soul, open the log you want to review, then press kbd:[S] after the log is loaded. It will copy a bunch of text to your clipboard.
+The script uses Tampermonkey permissions for Mahjong Soul domains and
+`naga.dmv.nico`. It reads your existing NAGA browser session only to submit the
+custom-game request.
 
 === Overview of how to use NAGA
 Find an overview of how to pay for and use NAGA's service https://pathofhouou.blogspot.com/2021/08/training-tool-naga-replay-review.html[here]
 
-=== Paste into NAGA custom analysis order form
-When the text is in your clipboard, paste it into the middle tab (custom game analysis) of NAGA's order form https://naga.dmv.nico/naga_report/order_form/[here]. NAGA points are charged by the round for custom games so it is more expensive.
+=== Submit the log
+Login to Mahjong Soul, open the 4-player replay you want to review, and stay
+logged in to NAGA in the same browser. Press kbd:[S] after the replay is loaded.
+The script converts the replay, submits it to NAGA's custom analysis API, and
+shows progress in a small on-page toast. NAGA points are charged by the round
+for custom games.
+
+== Development
+Run the converter fixture test with:
+
+----
+npm test
+----
+
+Run the full local check with:
+
+----
+npm run check
+----
+
+== Credits
+The 2026 WebSocket capture, protobuf decoder, converter fixture test, and NAGA
+submission flow are adapted from
+https://github.com/AsaChiri/majsoul-naga[AsaChiri/majsoul-naga], commit
+`1eb3c4519716ffa3cfdd0b8b0529aace77913458`, under the MIT license. See
+`LICENSE-AsaChiri-majsoul-naga`.

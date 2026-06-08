@@ -1,7 +1,40 @@
 {
-  "name": "node-starter",
-  "version": "0.0.0",
+  "name": "majsoul-to-naga",
+  "version": "1.0.1",
+  "description": "Userscript: capture a MahjongSoul replay and request a NAGA analysis",
+  "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/honvl/Majsoul-to-NAGA.git"
+  },
+  "bugs": {
+    "url": "https://github.com/honvl/Majsoul-to-NAGA/issues"
+  },
+  "homepage": "https://github.com/honvl/Majsoul-to-NAGA#readme",
+  "keywords": [
+    "mahjong",
+    "majsoul",
+    "mahjong-soul",
+    "naga",
+    "tenhou",
+    "userscript",
+    "tampermonkey"
+  ],
+  "files": [
+    "downloadlogsnaga.js"
+  ],
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1"
+    "test": "node test/run.cjs",
+    "lint": "eslint .",
+    "lint:fix": "eslint . --fix",
+    "format": "prettier --write .",
+    "format:check": "prettier --check .",
+    "check": "npm run lint && npm run format:check && npm test"
+  },
+  "devDependencies": {
+    "@eslint/js": "^9.0.0",
+    "eslint": "^9.0.0",
+    "globals": "^15.0.0",
+    "prettier": "^3.0.0"
   }
 }

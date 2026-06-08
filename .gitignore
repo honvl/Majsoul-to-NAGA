@@ -1,0 +1,11 @@
+# Node
+node_modules/
+
+# Editors / OS
+.DS_Store
+.idea/
+.vscode/
+
+# Local scratch
+*.local.js
+*.local.json
