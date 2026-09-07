@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         downloadlogsnaga
 // @namespace    https://github.com/honvl/Majsoul-to-NAGA
-// @version      1.0.2-naga
+// @version      1.0.3-naga
 // @description  Press "s" in a MahjongSoul 4-player replay to copy the NAGA-compatible log to your clipboard and request a NAGA analysis, entirely in-browser.
 // @author       honvl, AsaChiri
 // @homepageURL  https://github.com/honvl/Majsoul-to-NAGA
@@ -938,7 +938,67 @@
       return false;
     }
   }
+  // Last-resort path: put the payload on screen, pre-selected, so plain Ctrl+C
+  // works. The Copy button matters too — a click is fresh user activation, so
+  // navigator.clipboard accepts a write there even when the automatic attempt
+  // (which happens after the record fetch, with activation long gone) was
+  // refused.
+  function showNagaText(text, note) {
+    const old = document.getElementById("__mjn_panel");
+    if (old) old.remove();
+    const box = document.createElement("div");
+    box.id = "__mjn_panel";
+    box.style.cssText =
+      "position:fixed;z-index:100000;left:50%;top:50%;transform:translate(-50%,-50%);" +
+      "width:min(720px,86vw);background:#222;color:#fff;padding:14px 16px;border-radius:10px;" +
+      "font:13px/1.5 sans-serif;box-shadow:0 4px 24px rgba(0,0,0,.6)";
+    const msg = document.createElement("div");
+    msg.textContent = note;
+    msg.style.cssText = "margin-bottom:8px";
+    const ta = document.createElement("textarea");
+    ta.value = text;
+    ta.readOnly = true;
+    ta.style.cssText =
+      "width:100%;height:34vh;box-sizing:border-box;background:#111;color:#eee;border:1px solid #444;" +
+      "border-radius:6px;padding:8px;font:12px/1.4 monospace;white-space:pre;overflow:auto";
+    const row = document.createElement("div");
+    row.style.cssText = "margin-top:8px;display:flex;gap:8px;justify-content:flex-end";
+    const button = (label, bg) => {
+      const b = document.createElement("button");
+      b.textContent = label;
+      b.style.cssText =
+        "background:" +
+        bg +
+        ";color:#fff;border:0;border-radius:6px;padding:7px 14px;" +
+        "font:13px sans-serif;cursor:pointer";
+      return b;
+    };
+    const copy = button("Copy", "#3a7");
+    copy.onclick = async () => {
+      ta.focus();
+      ta.select();
+      copy.textContent = (await copyToClipboard(text)) ? "Copied ✓" : "Blocked — press Ctrl+C";
+    };
+    const close = button("Close", "#555");
+    close.onclick = () => box.remove();
+    row.append(copy, close);
+    box.append(msg, ta, row);
+    document.body.appendChild(box);
+    ta.focus();
+    ta.select();
+  }
+  // One submit at a time: a double-tap of "s" would otherwise start a second
+  // conversion and order (and pay for) the same game twice.
+  let running = false;
   async function run() {
+    if (running) {
+      toast("Already working on that replay — each submit costs NAGA points.");
+      return;
+    }
+    running = true;
+    // kept for the catch below: a failed submit is exactly when you need the
+    // log to order by hand
+    let nagaText = null;
     try {
       const resBytes = capturedResGameRecord();
       if (!resBytes) {
@@ -973,12 +1033,15 @@
       if (typeof unsafeWindow !== "undefined" && unsafeWindow) unsafeWindow.__mjnLastTenhou = tenhou;
 
       const haihus = toNagaCustom(tenhou);
-      const nagaText = toNagaText(haihus);
+      nagaText = toNagaText(haihus);
       const copied = await copyToClipboard(nagaText);
       if (copied) log("copied NAGA log to clipboard (" + haihus.length + " rounds)");
-      else log("clipboard copy failed — paste this into the NAGA order form:", nagaText);
+      else {
+        log("clipboard copy failed — paste this into the NAGA order form:", nagaText);
+        showNagaText(nagaText, "Couldn't reach the clipboard automatically — copy the log from here.");
+      }
 
-      const status = copied ? "copied to clipboard" : "clipboard blocked (log in console)";
+      const status = copied ? "copied to clipboard" : "clipboard blocked — see the panel";
       toast(`Decoded ${tenhou.log.length} rounds — ${status}; submitting to NAGA…`, 8000);
       const res = await submitToNaga(haihus, 0, gameType);
       toast("Submitted to NAGA ✓ — check your reports at naga.dmv.nico", 8000);
@@ -986,12 +1049,22 @@
     } catch (e) {
       toast("Error: " + e.message, 8000);
       logError(e);
+      // The clipboard write above is fire-and-forget in some managers, so don't
+      // assume it landed: if the submit failed, show the log outright.
+      if (nagaText) showNagaText(nagaText, "Submit failed (" + e.message + "). Order it by hand with this:");
+    } finally {
+      running = false;
     }
   }
 
   installWsHook();
+  const isTyping = (el) =>
+    !!el && (el.isContentEditable || /^(INPUT|TEXTAREA|SELECT)$/.test(el.tagName || ""));
   document.addEventListener("keydown", (e) => {
-    if ((e.key === TRIGGER_KEY || e.key === TRIGGER_KEY.toUpperCase()) && !e.repeat) run();
+    // Skip modified presses (Ctrl+S, and the Ctrl+C the panel asks for) and
+    // presses aimed at a text field — each submit costs NAGA points.
+    if (e.repeat || e.ctrlKey || e.metaKey || e.altKey || isTyping(e.target)) return;
+    if (e.key === TRIGGER_KEY || e.key === TRIGGER_KEY.toUpperCase()) run();
   });
   log("loaded; open a 4-player replay and press '" + TRIGGER_KEY + "'.");
 })();

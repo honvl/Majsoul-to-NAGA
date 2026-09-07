@@ -1,6 +1,6 @@
 {
   "name": "majsoul-to-naga",
-  "version": "1.0.2",
+  "version": "1.0.3",
   "description": "Userscript: capture a MahjongSoul replay and request a NAGA analysis",
   "license": "MIT",
   "repository": {

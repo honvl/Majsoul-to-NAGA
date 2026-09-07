@@ -39,6 +39,10 @@ fallback for when the automatic submit fails, or for when you want to choose the
 models or watched seat yourself — the analysis has already been ordered, so
 pasting it into the form as well orders (and charges for) the same game twice.
 
+If the submit fails, or the browser refuses the clipboard write, the script puts
+the same log on screen in a panel with the text pre-selected and a kbd:[Copy]
+button, so nothing is lost either way.
+
 == Development
 Run the converter fixture test with:
 
