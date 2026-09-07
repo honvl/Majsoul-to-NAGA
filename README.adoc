@@ -8,8 +8,9 @@ convert to format accepted by NAGA's custom game analysis.
 
 Mahjong Soul no longer exposes the `GameMgr`/`app` globals this script used to
 call. The userscript now hooks `window.WebSocket` at page load, captures the raw
-`fetchGameRecord` replay response, converts it in-browser, and submits the
-per-round custom-game payload to NAGA when you press kbd:[S].
+`fetchGameRecord` replay response, converts it in-browser, and — when you press
+kbd:[S] — copies the per-round custom-game payload to your clipboard and submits
+it to NAGA.
 
 == Instructions (Browser)
 === Install tampermonkey extension on your browser
@@ -28,9 +29,15 @@ Find an overview of how to pay for and use NAGA's service https://pathofhouou.bl
 === Submit the log
 Login to Mahjong Soul, open the 4-player replay you want to review, and stay
 logged in to NAGA in the same browser. Press kbd:[S] after the replay is loaded.
-The script converts the replay, submits it to NAGA's custom analysis API, and
-shows progress in a small on-page toast. NAGA points are charged by the round
-for custom games.
+The script converts the replay, copies the NAGA-compatible log to your
+clipboard, submits it to NAGA's custom analysis API, and shows progress in a
+small on-page toast. NAGA points are charged by the round for custom games.
+
+The clipboard copy is one `tenhou.net/5` URL per round, the format
+https://naga.dmv.nico/naga_report/order_form/[NAGA's order form] takes. It is a
+fallback for when the automatic submit fails, or for when you want to choose the
+models or watched seat yourself — the analysis has already been ordered, so
+pasting it into the form as well orders (and charges for) the same game twice.
 
 == Development
 Run the converter fixture test with:

@@ -1,8 +1,8 @@
 // ==UserScript==
 // @name         downloadlogsnaga
 // @namespace    https://github.com/honvl/Majsoul-to-NAGA
-// @version      1.0.1-naga
-// @description  Capture the current MahjongSoul 4-player replay and request a NAGA analysis, entirely in-browser.
+// @version      1.0.2-naga
+// @description  Press "s" in a MahjongSoul 4-player replay to copy the NAGA-compatible log to your clipboard and request a NAGA analysis, entirely in-browser.
 // @author       honvl, AsaChiri
 // @homepageURL  https://github.com/honvl/Majsoul-to-NAGA
 // @supportURL   https://github.com/honvl/Majsoul-to-NAGA/issues
@@ -15,6 +15,7 @@
 // @run-at       document-start
 // @grant        GM_xmlhttpRequest
 // @grant        GM_cookie
+// @grant        GM_setClipboard
 // @connect      naga.dmv.nico
 // @connect      maj-soul.com
 // @connect      mahjongsoul.com
@@ -693,9 +694,14 @@
   function toNagaCustom(t) {
     return t.log.map((round) => ({ title: t.title, name: t.name, rule: t.rule, log: [round] }));
   }
+  // One tenhou.net/5 URL per round, newline-separated — the format NAGA's
+  // custom-game order form accepts when a log is pasted in by hand.
+  function toNagaText(haihus) {
+    return haihus.map((h) => "https://tenhou.net/5/#json=" + JSON.stringify(h)).join("\n");
+  }
 
   // expose pure core for testing
-  window.__majsoulNaga = { decode, decodeRecord, convert, recordToTenhou, toNagaCustom };
+  window.__majsoulNaga = { decode, decodeRecord, convert, recordToTenhou, toNagaCustom, toNagaText };
 
   // ---- NAGA submit (uses your NAGA browser session) ---------------------
   function gmCookieList(details) {
@@ -895,6 +901,43 @@
     clearTimeout(el._t);
     el._t = setTimeout(() => (el.style.opacity = "0"), ms);
   }
+  // Building the payload means awaiting the record fetch, so by the time there
+  // is text to copy the keypress's transient user activation is gone and
+  // navigator.clipboard.writeText is rejected (it also throws outright while
+  // the game canvas holds focus). GM_setClipboard has neither restriction, so
+  // it is the real path here; the rest only matter for an install running
+  // without the @grant.
+  async function copyToClipboard(text) {
+    if (typeof GM_setClipboard !== "undefined") {
+      try {
+        GM_setClipboard(text, { type: "text", mimetype: "text/plain" });
+        return true;
+      } catch (e) {
+        warn("GM_setClipboard failed", e);
+      }
+    }
+    try {
+      await navigator.clipboard.writeText(text);
+      return true;
+    } catch (e) {
+      warn("navigator.clipboard.writeText failed", e);
+    }
+    try {
+      const ta = document.createElement("textarea");
+      ta.value = text;
+      ta.setAttribute("readonly", "");
+      ta.style.cssText = "position:fixed;top:0;left:0;width:1px;height:1px;opacity:0";
+      document.body.appendChild(ta);
+      ta.select();
+      ta.setSelectionRange(0, text.length);
+      const ok = document.execCommand("copy");
+      ta.remove();
+      return ok;
+    } catch (e) {
+      warn("execCommand copy failed", e);
+      return false;
+    }
+  }
   async function run() {
     try {
       const resBytes = capturedResGameRecord();
@@ -930,7 +973,13 @@
       if (typeof unsafeWindow !== "undefined" && unsafeWindow) unsafeWindow.__mjnLastTenhou = tenhou;
 
       const haihus = toNagaCustom(tenhou);
-      toast(`Decoded ${tenhou.log.length} rounds — submitting to NAGA…`, 8000);
+      const nagaText = toNagaText(haihus);
+      const copied = await copyToClipboard(nagaText);
+      if (copied) log("copied NAGA log to clipboard (" + haihus.length + " rounds)");
+      else log("clipboard copy failed — paste this into the NAGA order form:", nagaText);
+
+      const status = copied ? "copied to clipboard" : "clipboard blocked (log in console)";
+      toast(`Decoded ${tenhou.log.length} rounds — ${status}; submitting to NAGA…`, 8000);
       const res = await submitToNaga(haihus, 0, gameType);
       toast("Submitted to NAGA ✓ — check your reports at naga.dmv.nico", 8000);
       log("submitted", res);

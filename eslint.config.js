@@ -15,6 +15,7 @@ module.exports = [
         unsafeWindow: "readonly",
         GM_xmlhttpRequest: "readonly",
         GM_cookie: "readonly",
+        GM_setClipboard: "readonly",
       },
     },
     rules: {
