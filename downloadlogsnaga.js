@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         downloadlogsnaga
 // @namespace    https://github.com/honvl/Majsoul-to-NAGA
-// @version      1.0.3-naga
+// @version      1.0.4-naga
 // @description  Press "s" in a MahjongSoul 4-player replay to copy the NAGA-compatible log to your clipboard and request a NAGA analysis, entirely in-browser.
 // @author       honvl, AsaChiri
 // @homepageURL  https://github.com/honvl/Majsoul-to-NAGA
@@ -887,7 +887,7 @@
   }
 
   // ---- UI ---------------------------------------------------------------
-  function toast(msg, ms = 4000) {
+  function toast(msg, ms = 4000, onClick = null) {
     let el = document.getElementById("__mjn_toast");
     if (!el) {
       el = document.createElement("div");
@@ -897,46 +897,81 @@
       document.body.appendChild(el);
     }
     el.textContent = msg;
+    el.onclick = onClick;
+    el.style.cursor = onClick ? "pointer" : "";
+    el.style.pointerEvents = onClick ? "auto" : "none"; // else it eats game clicks
     el.style.opacity = "1";
     clearTimeout(el._t);
     el._t = setTimeout(() => (el.style.opacity = "0"), ms);
   }
-  // Building the payload means awaiting the record fetch, so by the time there
-  // is text to copy the keypress's transient user activation is gone and
-  // navigator.clipboard.writeText is rejected (it also throws outright while
-  // the game canvas holds focus). GM_setClipboard has neither restriction, so
-  // it is the real path here; the rest only matter for an install running
-  // without the @grant.
-  async function copyToClipboard(text) {
-    if (typeof GM_setClipboard !== "undefined") {
+  // Copy by selecting the text and running the browser's own copy command --
+  // the same thing Ctrl+C does. Pass the element the user can already see when
+  // there is one: a scratch element inherits the page's CSS, and a game page
+  // that sets user-select:none leaves select() with nothing selected, which
+  // copies nothing.
+  function copyViaSelection(text, el) {
+    let scratch = null;
+    try {
+      let src = el;
+      if (!src) {
+        scratch = document.createElement("textarea");
+        scratch.value = text;
+        scratch.style.cssText =
+          "position:fixed;top:0;left:0;width:1px;height:1px;opacity:0;" +
+          "user-select:text;-webkit-user-select:text";
+        document.body.appendChild(scratch);
+        src = scratch;
+      }
+      src.focus();
+      src.select();
+      src.setSelectionRange(0, text.length);
+      return document.execCommand("copy");
+    } catch (e) {
+      warn("selection copy failed", e);
+      return false;
+    } finally {
+      if (scratch) scratch.remove();
+    }
+  }
+  // Try the paths that report honestly before the one that cannot. execCommand
+  // and writeText both say whether they worked; GM_setClipboard is fire and
+  // forget, so a broken one claims success and hides every remaining option --
+  // which is why it goes last and only ever yields "unverified".
+  //
+  // Pass gestureEl when running inside a click: user activation makes the
+  // selection copy both permitted and reliable, so it leads. The automatic path
+  // has none (the record fetch ate it long ago) and leans on writeText, which
+  // Chrome still allows for a focused document.
+  //
+  // Returns true (confirmed), "unverified" (handed off, no way to check), or false.
+  async function copyToClipboard(text, gestureEl) {
+    const selection = () => copyViaSelection(text, gestureEl);
+    const writeText = async () => {
       try {
-        GM_setClipboard(text, { type: "text", mimetype: "text/plain" });
+        await navigator.clipboard.writeText(text);
         return true;
       } catch (e) {
-        warn("GM_setClipboard failed", e);
+        warn("navigator.clipboard.writeText failed", e);
+        return false;
       }
+    };
+    const setClipboard = () => {
+      if (typeof GM_setClipboard === "undefined") return false;
+      try {
+        GM_setClipboard(text, { type: "text", mimetype: "text/plain" });
+        return "unverified";
+      } catch (e) {
+        warn("GM_setClipboard failed", e);
+        return false;
+      }
+    };
+    for (const attempt of gestureEl
+      ? [selection, writeText, setClipboard]
+      : [writeText, setClipboard, selection]) {
+      const result = await attempt();
+      if (result) return result;
     }
-    try {
-      await navigator.clipboard.writeText(text);
-      return true;
-    } catch (e) {
-      warn("navigator.clipboard.writeText failed", e);
-    }
-    try {
-      const ta = document.createElement("textarea");
-      ta.value = text;
-      ta.setAttribute("readonly", "");
-      ta.style.cssText = "position:fixed;top:0;left:0;width:1px;height:1px;opacity:0";
-      document.body.appendChild(ta);
-      ta.select();
-      ta.setSelectionRange(0, text.length);
-      const ok = document.execCommand("copy");
-      ta.remove();
-      return ok;
-    } catch (e) {
-      warn("execCommand copy failed", e);
-      return false;
-    }
+    return false;
   }
   // Last-resort path: put the payload on screen, pre-selected, so plain Ctrl+C
   // works. The Copy button matters too — a click is fresh user activation, so
@@ -975,9 +1010,10 @@
     };
     const copy = button("Copy", "#3a7");
     copy.onclick = async () => {
-      ta.focus();
-      ta.select();
-      copy.textContent = (await copyToClipboard(text)) ? "Copied ✓" : "Blocked — press Ctrl+C";
+      // Only a confirmed copy gets to say so; "unverified" means the clipboard
+      // manager took it without telling us whether it landed.
+      const r = await copyToClipboard(text, ta);
+      copy.textContent = r === true ? "Copied ✓" : r ? "Sent — Ctrl+C if empty" : "Blocked — press Ctrl+C";
     };
     const close = button("Close", "#555");
     close.onclick = () => box.remove();
@@ -1035,14 +1071,20 @@
       const haihus = toNagaCustom(tenhou);
       nagaText = toNagaText(haihus);
       const copied = await copyToClipboard(nagaText);
-      if (copied) log("copied NAGA log to clipboard (" + haihus.length + " rounds)");
-      else {
-        log("clipboard copy failed — paste this into the NAGA order form:", nagaText);
-        showNagaText(nagaText, "Couldn't reach the clipboard automatically — copy the log from here.");
+      const openPanel = () => showNagaText(nagaText, "The NAGA log — copy it from here.");
+      log("clipboard copy: " + copied + " (" + haihus.length + " rounds)");
+      if (!copied) {
+        log("paste this into the NAGA order form:", nagaText);
+        openPanel();
       }
 
-      const status = copied ? "copied to clipboard" : "clipboard blocked — see the panel";
-      toast(`Decoded ${tenhou.log.length} rounds — ${status}; submitting to NAGA…`, 8000);
+      const status =
+        copied === true
+          ? "copied to clipboard"
+          : copied
+            ? "copy sent — click here if it didn't land"
+            : "clipboard blocked — see the panel";
+      toast(`Decoded ${tenhou.log.length} rounds — ${status}; submitting to NAGA…`, 8000, openPanel);
       const res = await submitToNaga(haihus, 0, gameType);
       toast("Submitted to NAGA ✓ — check your reports at naga.dmv.nico", 8000);
       log("submitted", res);
